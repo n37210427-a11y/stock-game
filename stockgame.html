@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📈 STOCK GAME📈</title>
+
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #0f172a;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    user-select: none;
+}
+
+/* 360x760 모바일 완벽 핏 컴팩트 컨테이너 */
+.phone-container {
+    width: 360px;
+    height: 760px;
+    background: #1e293b;
+    border-radius: 32px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 4px solid #334155;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 16px;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+}
+
+h1 {
+    color: #38bdf8;
+    font-size: 20px;
+    margin: 0;
+    text-align: center;
+}
+
+.description {
+    color: #94a3b8;
+    font-size: 11px;
+    margin: 2px 0 8px 0;
+    text-align: center;
+}
+
+/* 엔딩 해금 버튼 */
+.unlock-ending-btn {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #0f172a;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+    animation: pulse 1.5s infinite;
+    display: none;
+    text-align: center;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+/* 레벨 및 경험치 바 */
+.level-container {
+    width: 100%;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 4px 8px;
+    box-sizing: border-box;
+    margin-bottom: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.level-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: bold;
+}
+#levelDisplay { color: #a855f7; }
+#titleDisplay { color: #e2e8f0; font-weight: normal; font-size: 10px; }
+.xp-bar-bg {
+    width: 100%;
+    height: 4px;
+    background: #1e293b;
+    border-radius: 2px;
+    overflow: hidden;
+}
+.xp-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #a855f7, #ec4899);
+    transition: width 0.3s ease;
+}
+
+/* 대출 정보 바 */
+.loan-warning-bar {
+    width: 100%;
+    background: #451a03;
+    border: 1px solid #78350f;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    color: #fdd835;
+    text-align: center;
+    box-sizing: border-box;
+    margin-bottom: 6px;
+    display: none;
+}
+
+/* 자산 표시 바 */
+.status-container {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+.status-box {
+    flex: 1;
+    background: #0f172a;
+    padding: 6px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid #334155;
+}
+.status-label {
+    font-size: 10px;
+    color: #94a3b8;
+    display: block;
+    margin-bottom: 2px;
+}
+.status-value {
+    font-size: 13px;
+    font-weight: bold;
+}
+#balanceDisplay { color: #f59e0b; font-size: 14px; }
+#valuationDisplay { color: #10b981; }
+
+/* 주식 전광판 & 간이 차트 영역 */
+.chart-card {
+    width: 100%;
+    height: 190px;
+    background: #0f172a;
+    border-radius: 16px;
+    border: 1px solid #334155;
+    margin: 4px 0;
+    padding: 12px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.stock-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.stock-name-badge {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: bold;
+}
+.badge-blue { background: #1e3a8a; color: #93c5fd; }
+.badge-purple { background: #581c87; color: #d8b4fe; }
+.badge-red { background: #7f1d1d; color: #fca5a5; }
+
+.stock-price-area {
+    text-align: center;
+    margin: 4px 0;
+}
+.current-price {
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: -0.5px;
+}
+.price-up { color: #f43f5e; }
+.price-down { color: #3b82f6; }
+.price-same { color: #94a3b8; }
+
+/* 그래프 그리드 */
+.mini-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    height: 65px;
+    background: #020617;
+    border-radius: 8px;
+    padding: 6px;
+    overflow: hidden;
+    border: 1px solid #1e293b;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+}
+.chart-bar {
+    flex: 1;
+    background: #334155;
+    border-radius: 2px;
+    min-height: 4px;
+    transition: height 0.2s ease, background 0.2s ease;
+}
+
+/* 종목 선택 탭 */
+.stock-selector {
+    display: flex;
+    width: 100%;
+    gap: 4px;
+    margin-bottom: 6px;
+}
+.stock-tab-btn {
+    flex: 1;
+    padding: 6px 0;
+    font-size: 11px;
+    background: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.stock-tab-btn.active {
+    background: #38bdf8;
+    color: #0f172a;
+    border-color: #38bdf8;
+}
+
+/* 거래 제어 패널 */
+.trade-panel {
+    width: 100%;
+    background: #0f172a;
+    padding: 10px;
+    border-radius: 16px;
+    box-sizing: border-box;
+    border: 1px solid #334155;
+}
+.trade-info-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 11px;
+    color: #cbd5e1;
+    margin-bottom: 6px;
+    background: #1e293b;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+}
+.info-line {
+    display: flex;
+    justify-content: space-between;
+}
+.profit-up { color: #f43f5e; font-weight: bold; }
+.profit-down { color: #3b82f6; font-weight: bold; }
+.profit-zero { color: #94a3b8; }
+
+.trade-actions {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.trade-btn {
+    flex: 1;
+    padding: 12px 0;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: white;
+}
+#buyBtn { background: #f43f5e; }
+#buyBtn:hover { background: #e11d48; }
+#sellBtn { background: #3b82f6; }
+#sellBtn:hover { background: #2563eb; }
+
+/* 수량 조절 액션 패널 */
+.qty-actions {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 6px;
+}
+.qty-btn {
+    flex: 1;
+    padding: 8px 0;
+    font-size: 11px;
+    background: #1e293b;
+    color: #cbd5e1;
+    border: 1px solid #334155;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+/* ★ 선택 시 확 어두워지고 강조되는 테마 스타일링 */
+.qty-btn.selected {
+    background: #0369a1; /* 깊고 어두운 하늘색 */
+    color: #ffffff;      /* 텍스트는 선명한 흰색 */
+    border-color: #0284c7;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* 대출 패널 */
+.loan-panel {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+    border-top: 1px dashed #334155;
+    padding-top: 6px;
+}
+.loan-btn {
+    flex: 1;
+    padding: 6px 0;
+    font-size: 11px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    color: white;
+}
+#loanGetBtn { background: #b45309; } 
+#loanPayBtn { background: #047857; }
+#loanPayBtn:disabled { background: #1e293b; color: #475569; cursor: not-allowed; }
+
+/* 푸터 리셋 */
+.footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: #475569;
+    margin-top: 5px;
+}
+.reset-link-btn {
+    background: none;
+    border: none;
+    color: #f43f5e;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* 엔딩 오버레이 */
+.ending-screen {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.95);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 30px;
+    box-sizing: border-box;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease;
+}
+.ending-screen.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+.ending-title {
+    font-size: 26px;
+    color: #f59e0b;
+    margin-bottom: 15px;
+    font-weight: bold;
+    animation: bounce 1s infinite alternate;
+}
+@keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+.ending-body { font-size: 13px; color: #cbd5e1; line-height: 1.6; margin-bottom: 30px; }
+.restart-btn {
+    padding: 12px 30px; border: none; border-radius: 30px;
+    background: linear-gradient(135deg, #22c55e, #10b981);
+    color: white; font-weight: bold; font-size: 15px; cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="phone-container">
+    <div class="ending-screen" id="endingScreen">
+        <div class="ending-title">👑 월가의 지배자 등극!</div>
+        <div class="ending-body">
+            축하합니다!<br>
+            사채의 유혹과 무자비한 폭락장을 극복하고<br>
+            최종 목표 금액인 <strong>10,000,000원</strong>을 달성하셨습니다!<br><br>
+            당신은 전설적인 주식 투자의 신입니다.
+        </div>
+        <button class="restart-btn" onclick="resetGame()">🔄 처음부터 다시 도전</button>
+    </div>
+
+    <div>
+        <h1>📈 STOCK TYCOON 📈</h1>
+        <p class="description">시세를 예측하고 매매하여 자산을 불리세요!</p>
+        
+        <button class="unlock-ending-btn" id="unlockEndingBtn" onclick="triggerEnding()">👑 엔딩 해금하기</button>
+
+        <div class="level-container">
+            <div class="level-info">
+                <span id="levelDisplay">Lv.1</span>
+                <span id="titleDisplay">주린이</span>
+            </div>
+            <div class="xp-bar-bg">
+                <div class="xp-bar-fill" id="xpBar"></div>
+            </div>
+        </div>
+
+        <div class="loan-warning-bar" id="loanWarning">
+            ⚠️ 사채 이자 인출 중! (틱당 <span id="loanFeeText">0</span>원 누수)
+        </div>
+
+        <div class="status-container">
+            <div class="status-box">
+                <span class="status-label">💰 예수금 (보유 현금)</span>
+                <span class="status-value" id="balanceDisplay">10,000원</span>
+            </div>
+            <div class="status-box">
+                <span class="status-label">📊 총 평가 자산</span>
+                <span class="status-value" id="valuationDisplay">10,000원</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="stock-selector">
+        <button class="stock-tab-btn active" id="tab_blue" onclick="changeStock('blue')">국민전자 (Lv.1)</button>
+        <button class="stock-tab-btn" id="tab_purple" onclick="changeStock('purple')">🔒 레어바이오</button>
+        <button class="stock-tab-btn" id="tab_red" onclick="changeStock('red')">🔒 에픽코인</button>
+    </div>
+
+    <div class="chart-card">
+        <div class="stock-header">
+            <span class="stock-name-badge" id="stockBadge">국민전자</span>
+            <span style="font-size: 11px; color: #94a3b8;" id="stockChangePercent">+0.00%</span>
+        </div>
+        <div class="stock-price-area">
+            <div class="current-price price-same" id="currentPriceDisplay">1,000원</div>
+        </div>
+        <div class="mini-chart" id="miniChart"></div>
+    </div>
+
+    <div class="trade-panel">
+        <div class="trade-info-row">
+            <div class="info-line">
+                <span>보유 수량: <strong id="myQtyDisplay" style="color:#38bdf8;">0주</strong></span>
+                <span>평균 단가: <strong id="myAvgPriceDisplay">0원</strong></span>
+            </div>
+            <div class="info-line" style="margin-top: 4px; border-top: 1px dashed #334155; padding-top: 4px;">
+                <span>내비 지수 (수익률):</span>
+                <span id="myProfitPercentDisplay" class="profit-zero">0.00% (0원)</span>
+            </div>
+        </div>
+
+        <div class="qty-actions">
+            <button class="qty-btn selected" id="qty_1" onclick="setTradeQty('1')">1주</button>
+            <button class="qty-btn" id="qty_5" onclick="setTradeQty('5')">5주</button>
+            <button class="qty-btn" id="qty_HALF" onclick="setTradeQty('HALF')">자산 50%</button>
+            <button class="qty-btn" id="qty_MAX" onclick="setTradeQty('MAX')">몰빵</button>
+        </div>
+
+        <div class="trade-actions">
+            <button class="trade-btn" id="buyBtn" onclick="executeTrade('BUY')">매수 (사기)</button>
+            <button class="trade-btn" id="sellBtn" onclick="executeTrade('SELL')">매도 (팔기)</button>
+        </div>
+
+        <div class="loan-panel">
+            <button class="loan-btn" id="loanGetBtn" onclick="takeLoan()">💵 사채 대출 (+5만)</button>
+            <button class="loan-btn" id="loanPayBtn" onclick="repayLoan()">✅ 대출 상환 (5만원)</button>
+        </div>
+
+        <div class="footer-row">
+            <span>목표 금액: 10,000,000원</span>
+            <button class="reset-link-btn" onclick="confirmReset()">⚙️ 데이터 리셋</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const STOCKS = {
+    blue: { name: "국민전자", badgeClass: "badge-blue", basePrice: 1000, reqLevel: 1, volatility: 0.05, xpGain: 2 },
+    purple: { name: "레어바이오", badgeClass: "badge-purple", basePrice: 10000, reqLevel: 3, volatility: 0.13, xpGain: 6 },
+    red: { name: "에픽코인", badgeClass: "badge-red", basePrice: 50000, reqLevel: 6, volatility: 0.30, xpGain: 15 }
+};
+
+let myBalance = 10000;
+let currentLevel = 1;
+let currentXp = 0;
+const XP_PER_LEVEL = 100;
+let loanCount = 0;
+
+const LOAN_UNIT = 50000;
+const INTEREST_PER_TICK = 300; 
+const GOAL_BALANCE = 10000000;
+
+let stockPrices = { blue: 1000, purple: 10000, red: 50000 };
+let stockHistories = { blue: [1000], purple: [10000], red: [50000] };
+let myInventory = { blue: { qty: 0, avgPrice: 0 }, purple: { qty: 0, avgPrice: 0 }, red: { qty: 0, avgPrice: 0 } };
+
+let currentSelectedStock = 'blue';
+let selectedQtyInput = '1'; 
+
+const titles = ["주린이", "동네 개미", "전업 투자자", "여의도 분석가", "펀드 매니저", "작전 세력", "시장 설계자", "월가의 신"];
+
+function getTitle(lv) {
+    return lv >= titles.length ? titles[titles.length - 1] : titles[lv - 1];
+}
+
+function saveGame() {
+    const data = {
+        balance: myBalance, level: currentLevel, xp: currentXp, loan: loanCount,
+        prices: stockPrices, inventory: myInventory, history: stockHistories
+    };
+    localStorage.setItem("stock_tycoon_save_2026", JSON.stringify(data));
+}
+
+function loadGame() {
+    const saved = localStorage.getItem("stock_tycoon_save_2026");
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            myBalance = parsed.balance ?? 10000;
+            currentLevel = parsed.level ?? 1;
+            currentXp = parsed.xp ?? 0;
+            loanCount = parsed.loan ?? 0;
+            stockPrices = parsed.prices ?? stockPrices;
+            myInventory = parsed.inventory ?? myInventory;
+            stockHistories = parsed.history ?? stockHistories;
+        } catch(e) { console.error(e); }
+    }
+}
+
+function updateUI() {
+    document.getElementById("balanceDisplay").innerText = `${Math.floor(myBalance).toLocaleString()}원`;
+    
+    let totalValuation = myBalance;
+    Object.keys(STOCKS).forEach(key => {
+        totalValuation += myInventory[key].qty * stockPrices[key];
+    });
+    document.getElementById("valuationDisplay").innerText = `${Math.floor(totalValuation).toLocaleString()}원`;
+
+    document.getElementById("levelDisplay").innerText = `Lv.${currentLevel}`;
+    document.getElementById("titleDisplay").innerText = getTitle(currentLevel);
+    const xpPercent = Math.min((currentXp / XP_PER_LEVEL) * 100, 100);
+    document.getElementById("xpBar").style.width = `${xpPercent}%`;
+
+    const loanWarning = document.getElementById("loanWarning");
+    const loanPayBtn = document.getElementById("loanPayBtn");
+    if (loanCount > 0) {
+        loanWarning.style.display = "block";
+        document.getElementById("loanFeeText").innerText = (loanCount * INTEREST_PER_TICK).toLocaleString();
+        loanPayBtn.innerText = `✅ 1회 상환 (${LOAN_UNIT.toLocaleString()}원)`;
+        loanPayBtn.disabled = myBalance < LOAN_UNIT;
+    } else {
+        loanWarning.style.display = "none";
+        loanPayBtn.innerText = `✅ 대출 상환 (0원)`;
+        loanPayBtn.disabled = true;
+    }
+
+    Object.keys(STOCKS).forEach(key => {
+        const tab = document.getElementById(`tab_${key}`);
+        if (currentLevel < STOCKS[key].reqLevel) {
+            tab.innerText = `🔒 Lv.${STOCKS[key].reqLevel}`;
+            if(currentSelectedStock === key) currentSelectedStock = 'blue';
+        } else {
+            tab.innerText = `${STOCKS[key].name}`;
+        }
+    });
+
+    const unlockEndingBtn = document.getElementById("unlockEndingBtn");
+    if (totalValuation >= GOAL_BALANCE && loanCount === 0) {
+        unlockEndingBtn.style.display = "block";
+    } else {
+        unlockEndingBtn.style.display = "none";
+    }
+
+    const curStock = STOCKS[currentSelectedStock];
+    const curPrice = stockPrices[currentSelectedStock];
+    const history = stockHistories[currentSelectedStock];
+    const prevPrice = history.length > 1 ? history[history.length - 2] : curPrice;
+    
+    const badge = document.getElementById("stockBadge");
+    badge.innerText = curStock.name;
+    badge.className = `stock-name-badge ${curStock.badgeClass}`;
+
+    const priceDisp = document.getElementById("currentPriceDisplay");
+    priceDisp.innerText = `${Math.floor(curPrice).toLocaleString()}원`;
+
+    const changePercent = ((curPrice - curStock.basePrice) / curStock.basePrice * 100).toFixed(2);
+    const percentDisp = document.getElementById("stockChangePercent");
+    if (curPrice > prevPrice) {
+        priceDisp.className = "current-price price-up";
+        percentDisp.innerText = `대비 ▲ (${changePercent}%)`;
+        percentDisp.style.color = "#f43f5e";
+    } else if (curPrice < prevPrice) {
+        priceDisp.className = "current-price price-down";
+        percentDisp.innerText = `대비 ▼ (${changePercent}%)`;
+        percentDisp.style.color = "#3b82f6";
+    } else {
+        priceDisp.className = "current-price price-same";
+        percentDisp.innerText = `보합 (${changePercent}%)`;
+        percentDisp.style.color = "#94a3b8";
+    }
+
+    const inv = myInventory[currentSelectedStock];
+    document.getElementById("myQtyDisplay").innerText = `${inv.qty}주`;
+    document.getElementById("myAvgPriceDisplay").innerText = `${Math.floor(inv.avgPrice).toLocaleString()}원`;
+
+    const profitDisp = document.getElementById("myProfitPercentDisplay");
+    if (inv.qty > 0) {
+        const profitReturn = curPrice - inv.avgPrice;
+        const profitPct = ((profitReturn / inv.avgPrice) * 100).toFixed(2);
+        const totalProfitCash = Math.floor(profitReturn * inv.qty);
+        
+        if (profitReturn > 0) {
+            profitDisp.className = "profit-up";
+            profitDisp.innerText = `+${profitPct}% (+${totalProfitCash.toLocaleString()}원)`;
+        } else if (profitReturn < 0) {
+            profitDisp.className = "profit-down";
+            profitDisp.innerText = `${profitPct}% (${totalProfitCash.toLocaleString()}원)`;
+        } else {
+            profitDisp.className = "profit-zero";
+            profitDisp.innerText = `0.00% (0원)`;
+        }
+    } else {
+        profitDisp.className = "profit-zero";
+        profitDisp.innerText = "미보유";
+    }
+
+    const chartContainer = document.getElementById("miniChart");
+    chartContainer.innerHTML = '';
+    const maxBars = 18; 
+    const renderHistory = history.slice(-maxBars);
+    
+    const currentMax = Math.max(...renderHistory);
+    const currentMin = Math.min(...renderHistory);
+    const margin = (currentMax - currentMin) * 0.15 || 10; 
+    const maxVal = currentMax + margin;
+    const minVal = Math.max(0, currentMin - margin);
+
+    renderHistory.forEach((hPrice, idx) => {
+        const bar = document.createElement("div");
+        bar.className = "chart-bar";
+        const ratio = (hPrice - minVal) / ((maxVal - minVal) || 1);
+        bar.style.height = `${Math.max(8, ratio * 100)}%`; 
+        
+        if(idx > 0) {
+            if(hPrice > renderHistory[idx-1]) bar.style.background = "#f43f5e";
+            else if(hPrice < renderHistory[idx-1]) bar.style.background = "#3b82f6";
+            else bar.style.background = "#64748b";
+        } else {
+            bar.style.background = "#64748b";
+        }
+        chartContainer.appendChild(bar);
+    });
+}
+
+function changeStock(key) {
+    if (currentLevel < STOCKS[key].reqLevel) return;
+    Object.keys(STOCKS).forEach(k => document.getElementById(`tab_${k}`).classList.remove("active"));
+    document.getElementById(`tab_${key}`).classList.add("active");
+    currentSelectedStock = key;
+    updateUI();
+}
+
+// ★ 변경점: 선택된 수량 버튼 하이라이트 CSS 클래스 부여
+function setTradeQty(preset) {
+    selectedQtyInput = preset;
+    document.querySelectorAll(".qty-actions .qty-btn").forEach(btn => btn.classList.remove("selected"));
+    document.getElementById(`qty_${preset}`).classList.add("selected");
+}
+
+function executeTrade(type) {
+    const price = stockPrices[currentSelectedStock];
+    const inv = myInventory[currentSelectedStock];
+    let qty = 0;
+
+    if (type === 'BUY') {
+        if (selectedQtyInput === '1') qty = 1;
+        else if (selectedQtyInput === '5') qty = 5; 
+        else if (selectedQtyInput === 'HALF') qty = Math.floor((myBalance / 2) / price);
+        else if (selectedQtyInput === 'MAX') qty = Math.floor(myBalance / price);
+
+        if (qty <= 0) return;
+        const totalCost = qty * price;
+        if (myBalance >= totalCost) {
+            myBalance -= totalCost;
+            inv.avgPrice = ((inv.avgPrice * inv.qty) + totalCost) / (inv.qty + qty);
+            inv.qty += qty;
+            gainXp(STOCKS[currentSelectedStock].xpGain);
+        }
+    } else if (type === 'SELL') {
+        if (selectedQtyInput === '1') qty = 1;
+        else if (selectedQtyInput === '5') qty = 5; 
+        else if (selectedQtyInput === 'HALF') qty = Math.floor(inv.qty / 2);
+        else if (selectedQtyInput === 'MAX') qty = inv.qty;
+
+        if (qty <= 0 || inv.qty < qty) return;
+        const totalRevenue = qty * price;
+        myBalance += totalRevenue;
+        inv.qty -= qty;
+        if (inv.qty === 0) inv.avgPrice = 0;
+        gainXp(STOCKS[currentSelectedStock].xpGain);
+    }
+    saveGame();
+    updateUI();
+}
+
+function gainXp(amount) {
+    currentXp += amount;
+    while (currentXp >= XP_PER_LEVEL) {
+        currentLevel++;
+        currentXp -= XP_PER_LEVEL;
+    }
+}
+
+function takeLoan() {
+    myBalance += LOAN_UNIT;
+    loanCount++;
+    saveGame();
+    updateUI();
+}
+
+function repayLoan() {
+    if (loanCount > 0 && myBalance >= LOAN_UNIT) {
+        myBalance -= LOAN_UNIT;
+        loanCount--;
+        saveGame();
+        updateUI();
+    }
+}
+
+setInterval(() => {
+    Object.keys(STOCKS).forEach(key => {
+        const config = STOCKS[key];
+        const currentP = stockPrices[key];
+        const changePercent = (Math.random() - 0.49) * 2 * config.volatility; 
+        let nextPrice = currentP * (1 + changePercent);
+        
+        if (nextPrice < config.basePrice * 0.1) nextPrice = config.basePrice * 0.1;
+        
+        stockPrices[key] = Math.floor(nextPrice);
+        stockHistories[key].push(Math.floor(nextPrice));
+        if (stockHistories[key].length > 30) stockHistories[key].shift();
+    });
+
+    if (loanCount > 0) {
+        myBalance -= (loanCount * INTEREST_PER_TICK);
+    }
+
+    saveGame();
+    updateUI();
+}, 1500);
+
+function triggerEnding() {
+    let totalValuation = myBalance;
+    Object.keys(STOCKS).forEach(key => { totalValuation += myInventory[key].qty * stockPrices[key]; });
+    if (totalValuation >= GOAL_BALANCE && loanCount === 0) {
+        document.getElementById("endingScreen").classList.add("active");
+    }
+}
+
+function confirmReset() {
+    if (confirm("모든 투자 성과 기록과 자산을 리셋하시겠습니까?")) resetGame();
+}
+
+function resetGame() {
+    localStorage.removeItem("stock_tycoon_save_2026");
+    myBalance = 10000;
+    currentLevel = 1;
+    currentXp = 0;
+    loanCount = 0;
+    stockPrices = { blue: 1000, purple: 10000, red: 50000 };
+    stockHistories = { blue: [1000], purple: [10000], red: [50000] };
+    myInventory = { blue: { qty: 0, avgPrice: 0 }, purple: { qty: 0, avgPrice: 0 }, red: { qty: 0, avgPrice: 0 } };
+    document.getElementById("endingScreen").classList.remove("active");
+    updateUI();
+}
+
+loadGame();
+updateUI();
+</script>
+
+</body>
+</html>
